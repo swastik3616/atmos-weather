@@ -1,29 +1,40 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './Login';
 import Signup from './Signup';
 import ResetPassword from './ResetPassword';
-// import logo from './logo.svg';
+import Chat from './Chat';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { app } from './firebaseconfig';
 import './App.css';
 
+function AppRoutes({ isLoggedIn }) {
+  if (isLoggedIn) {
+    return <Chat />;
+  }
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/" element={<Login />} />
+    </Routes>
+  );
+}
+
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  useEffect(() => {
+    const auth = getAuth(app);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsLoggedIn(!!user);
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <Router>
-      <div className="App">
-        <nav>
-          <Link to="/login">Login</Link> |{' '}
-          <Link to="/signup">Signup</Link> |{' '}
-          <Link to="/reset-password">Reset Password</Link>
-        </nav>
-        <header className="App-header">
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/" element={<p>Welcome! Please select an option above.</p>} />
-          </Routes>
-        </header>
-      </div>
+      <AppRoutes isLoggedIn={isLoggedIn} />
     </Router>
   );
 }
