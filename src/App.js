@@ -13,6 +13,7 @@ import './App.css';
 import { getCurrentWeather, getForecast } from './api/weatherApi';
 import Forecast from './components/Forecast';
 import OtherCities from './components/OtherCities';
+import { Menu, X } from 'lucide-react';
 
 function DashboardLayout() {
   const [city, setCity] = useState('hyderabad');
@@ -20,6 +21,7 @@ function DashboardLayout() {
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -40,23 +42,40 @@ function DashboardLayout() {
   }, [city]);
 
   return (
-    <div className="flex min-h-screen bg-[#151A23]">
-      <Sidebar />
-      <main className="flex-1 p-8">
-        <TopBar city={city} setCity={setCity} />
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 mt-4 w-full">
+    <div className="flex min-h-screen bg-[#151A23] mobile-safe-area">
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden mobile-tap-highlight"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={`fixed lg:relative z-50 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} transition-transform duration-300 ease-in-out`}>
+        <Sidebar onClose={() => setSidebarOpen(false)} />
+      </div>
+      
+      <main className="flex-1 p-4 lg:p-8 w-full overflow-x-hidden">
+        <TopBar 
+          city={city} 
+          setCity={setCity} 
+          onMenuClick={() => setSidebarOpen(true)}
+        />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mt-4 w-full">
           {/* First row: WeatherCard | TodayHighlight */}
-          <div className="xl:col-span-3">
+          <div className="lg:col-span-3">
             <WeatherCard weather={weather} loading={loading} error={error} />
           </div>
-          <div className="xl:col-span-2">
+          <div className="lg:col-span-2">
             <TodayHighlight weather={weather} loading={loading} error={error} />
           </div>
           {/* Second row: Forecast | OtherCities */}
-          <div className="xl:col-span-3">
+          <div className="lg:col-span-3">
             <Forecast forecast={forecast} loading={loading} error={error} />
           </div>
-          <div className="xl:col-span-2">
+          <div className="lg:col-span-2">
             <OtherCities />
           </div>
         </div>

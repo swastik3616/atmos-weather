@@ -6,14 +6,14 @@ export default function WeatherCard({ weather, loading, error }) {
 
   if (loading) {
     return (
-      <section className="bg-card-bg rounded-3xl p-8 shadow-dashboard font-dashboard text-text-primary flex flex-col w-full max-w-3xl text-center">
+      <section className="bg-card-bg rounded-3xl p-4 lg:p-8 shadow-dashboard font-dashboard text-text-primary flex flex-col w-full text-center">
         Loading weather...
       </section>
     );
   }
   if (error || !weather) {
     return (
-      <section className="bg-card-bg rounded-3xl p-8 shadow-dashboard font-dashboard text-red-400 flex flex-col w-full max-w-3xl text-center">
+      <section className="bg-card-bg rounded-3xl p-4 lg:p-8 shadow-dashboard font-dashboard text-red-400 flex flex-col w-full text-center">
         {error || 'No weather data'}
       </section>
     );
@@ -26,11 +26,13 @@ export default function WeatherCard({ weather, loading, error }) {
   } = weather;
 
   return (
-    <section className="bg-card-bg rounded-3xl p-8 shadow-dashboard font-dashboard text-text-primary flex flex-col w-full max-w-3xl">
+    <section className="bg-card-bg rounded-3xl p-4 lg:p-8 shadow-dashboard font-dashboard text-text-primary flex flex-col w-full">
       {/* Location */}
-      <div className="flex items-center gap-4 mb-12">
-        <span className="bg-accent text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
-          <MapPin size={16} /> {location?.name}, {location?.country}
+      <div className="flex items-center gap-2 lg:gap-4 mb-6 lg:mb-12">
+        <span className="bg-accent text-white text-xs font-semibold px-2 lg:px-3 py-1 rounded-full flex items-center gap-1">
+          <MapPin size={14} className="lg:w-4 lg:h-4" /> 
+          <span className="hidden sm:inline">{location?.name}, {location?.country}</span>
+          <span className="sm:hidden">{location?.name}</span>
         </span>
         <div className="ml-auto flex items-center gap-2 bg-[#232A3A] rounded-full px-2 py-1">
           <span className={`text-xs font-bold ${isCelsius ? 'text-white' : 'text-gray-400'} cursor-pointer`} onClick={() => setIsCelsius(true)}>C</span>
@@ -38,25 +40,27 @@ export default function WeatherCard({ weather, loading, error }) {
           <span className={`text-xs font-bold ${!isCelsius ? 'text-white' : 'text-gray-400'} cursor-pointer`} onClick={() => setIsCelsius(false)}>F</span>
         </div>
       </div>
+      
       {/* Day, Date, Weather Icon */}
-      <div className="flex items-center justify-between mt-2">
-        <div>
-          <div className="text-3xl font-bold">{location?.localtime ? new Date(location.localtime).toLocaleDateString('en-US', { weekday: 'long' }) : ''}</div>
-          <div className="text-text-secondary text-sm mb-4">{location?.localtime ? new Date(location.localtime).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}</div>
-          <div className="flex items-center gap-4">
-            <span className="text-6xl font-bold">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-2 gap-4">
+        <div className="flex-1">
+          <div className="text-xl lg:text-3xl font-bold">{location?.localtime ? new Date(location.localtime).toLocaleDateString('en-US', { weekday: 'long' }) : ''}</div>
+          <div className="text-text-secondary text-xs lg:text-sm mb-2 lg:mb-4">{location?.localtime ? new Date(location.localtime).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}</div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 lg:gap-4">
+            <span className="text-4xl lg:text-6xl font-bold">
               {isCelsius ? `${current.temp_c}°C` : `${current.temp_f}°F`}
             </span>
-            <div className="flex flex-col text-xs text-text-secondary ml-10">
+            <div className="flex flex-col text-xs text-text-secondary">
               <span>Feels Like: {isCelsius ? `${current.feelslike_c}°C` : `${current.feelslike_f}°F`}</span>
               <span>Humidity: {current.humidity}%</span>
             </div>
           </div>
         </div>
+        
         {/* Weather Icon */}
         <div className="flex flex-col items-center">
-          <img src={current.condition.icon} alt={current.condition.text} className="w-20 h-20" />
-          <span className="text-lg font-semibold mt-2">{current.condition.text}</span>
+          <img src={current.condition.icon} alt={current.condition.text} className="w-16 h-16 lg:w-20 lg:h-20" />
+          <span className="text-sm lg:text-lg font-semibold mt-2 text-center">{current.condition.text}</span>
           <span className="text-text-secondary text-xs">Wind: {current.wind_kph} km/h</span>
         </div>
       </div>
