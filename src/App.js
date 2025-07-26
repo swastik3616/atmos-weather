@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './Login';
 import Signup from './Signup';
 import ResetPassword from './ResetPassword';
-import Chat from './Chat';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import WeatherCard from './components/WeatherCard';

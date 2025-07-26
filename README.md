@@ -1,41 +1,68 @@
-# Project Name
+# Atmos Weather Dashboard
 
-> Short project description goes here. Explain what your app does and its main purpose.
-
-## Table of Contents
-- [Features](#features)
-- [Getting Started](#getting-started)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
+A modern, responsive weather dashboard built with React, Tailwind CSS, and WeatherAPI. Inspired by Figma community designs, this app features a beautiful UI, real-time weather data, and a clean, professional layout.
 
 ## Features
-- Feature 1: Brief description
-- Feature 2: Brief description
-- Feature 3: Brief description
+
+- **Live Weather Data:** Powered by [WeatherAPI](https://www.weatherapi.com/)
+- **City Search:** Instantly view weather for any city
+- **Current Weather Card:** Prominent, bold display of temperature, conditions, and details
+- **Today Highlight:** Key metrics (rain, UV, wind, humidity) in a 2x2 grid
+- **Today/Week Forecast:** Hourly forecast row, tomorrow's weather, sunrise/sunset/length of day
+- **Other Cities:** 2x2 grid of world cities with live weather
+- **Modern UI:** Responsive, dark mode, glassmorphism, and Figma-inspired design
+
+## Tech Stack
+- React
+- Tailwind CSS (with custom design tokens)
+- WeatherAPI (for weather data)
+- Lucide React (for icons)
+- Framer Motion (for optional animations)
 
 ## Getting Started
 
-### Prerequisites
-- Node.js (vXX or higher)
-- npm (vXX or higher)
+1. **Clone the repo:**
+   ```bash
+   git clone <your-repo-url>
+   cd atmos-weather/atmos-weather
+   ```
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+3. **Set up WeatherAPI:**
+   - Get a free API key from [WeatherAPI](https://www.weatherapi.com/)
+   - Add your API key in `src/api/weatherApi.js`:
+     ```js
+     const API_KEY = 'YOUR_API_KEY_HERE';
+     ```
+4. **Start the app:**
+   ```bash
+   npm start
+   ```
+5. **Open in browser:**
+   - Visit [http://localhost:3000](http://localhost:3000)
 
-### Installation
-```bash
-npm install
-```
+## Customizing Cities
+- The "Other Cities" section can be customized in `src/components/OtherCities.jsx`:
+  ```js
+  const cityList = [
+    'New York',
+    'London',
+    'Tokyo',
+    'Sydney',
+  ];
+  ```
+- Add or remove cities as you like!
 
-### Running the App
-```bash
-npm start
-```
-The app will be available at [http://localhost:3000](http://localhost:3000).
+## Screenshots
 
-## Usage
-Describe how to use the app. Include screenshots or code examples if helpful.
+![Dashboard Screenshot](./screenshot.png)
 
-## Contributing
-Contributions are welcome! Please open an issue or submit a pull request.
+## Credits
+- UI inspired by [Figma Community Weather Dashboard](https://www.figma.com/proto/psBQ0Rz12SaP4zyV1Jc1DM/Weather-Dashboard--Community-?node-id=2-2)
+- Weather data from [WeatherAPI](https://www.weatherapi.com/)
 
-## License
-This project is licensed under the [MIT License](LICENSE).
+---
+
+**Enjoy your beautiful, modern weather dashboard!**
