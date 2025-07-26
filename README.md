@@ -55,14 +55,5 @@ A modern, responsive weather dashboard built with React, Tailwind CSS, and Weath
   ```
 - Add or remove cities as you like!
 
-## Screenshots
-
-![Dashboard Screenshot](./screenshot.png)
-
-## Credits
-- UI inspired by [Figma Community Weather Dashboard](https://www.figma.com/proto/psBQ0Rz12SaP4zyV1Jc1DM/Weather-Dashboard--Community-?node-id=2-2)
-- Weather data from [WeatherAPI](https://www.weatherapi.com/)
-
----
 
 **Enjoy your beautiful, modern weather dashboard!**
