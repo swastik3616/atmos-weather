@@ -8,7 +8,7 @@ const cityList = [
   'Sydney',
 ];
 
-export default function OtherCities() {
+export default function OtherCities({ unit }) {
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -52,11 +52,13 @@ export default function OtherCities() {
         {cities.map((city, idx) => (
           <div key={idx} className="bg-dashboard-bg rounded-2xl p-4 lg:p-6 flex flex-col justify-between min-h-[120px] lg:min-h-[140px] shadow-dashboard">
             <div className="flex items-center justify-between">
-              <span className="text-text-primary text-2xl lg:text-3xl font-bold">{Math.round(city.current.temp_c)}°</span>
+              <span className="text-text-primary text-2xl lg:text-3xl font-bold">
+                {unit === 'celsius' ? Math.round(city.current.temp_c) + '°C' : Math.round(city.current.temp_f) + '°F'}
+              </span>
               <img src={city.current.condition.icon} alt={city.current.condition.text} className="w-10 h-10 lg:w-12 lg:h-12" />
             </div>
             <div className="flex items-center text-xs text-text-secondary mt-2 mb-1">
-              H{Math.round(city.current.temp_c + 3)}°&nbsp;L{Math.round(city.current.temp_c - 3)}°
+              H{unit === 'celsius' ? Math.round(city.current.temp_c + 3) + '°C' : Math.round(city.current.temp_f + 5) + '°F'}&nbsp;L{unit === 'celsius' ? Math.round(city.current.temp_c - 3) + '°C' : Math.round(city.current.temp_f - 5) + '°F'}
             </div>
             <div className="text-text-primary text-sm lg:text-base font-medium">{city.location.name}</div>
           </div>

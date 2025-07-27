@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MapPin } from 'lucide-react';
 
-export default function WeatherCard({ weather, loading, error }) {
-  const [isCelsius, setIsCelsius] = useState(true);
-
+export default function WeatherCard({ weather, loading, error, unit }) {
   if (loading) {
     return (
       <section className="bg-card-bg rounded-3xl p-4 lg:p-8 shadow-dashboard font-dashboard text-text-primary flex flex-col w-full text-center">
@@ -34,13 +32,7 @@ export default function WeatherCard({ weather, loading, error }) {
           <span className="hidden sm:inline">{location?.name}, {location?.country}</span>
           <span className="sm:hidden">{location?.name}</span>
         </span>
-        <div className="ml-auto flex items-center gap-2 bg-[#232A3A] rounded-full px-2 py-1">
-          <span className={`text-xs font-bold ${isCelsius ? 'text-white' : 'text-gray-400'} cursor-pointer`} onClick={() => setIsCelsius(true)}>C</span>
-          <span className="text-gray-500">|</span>
-          <span className={`text-xs font-bold ${!isCelsius ? 'text-white' : 'text-gray-400'} cursor-pointer`} onClick={() => setIsCelsius(false)}>F</span>
-        </div>
       </div>
-      
       {/* Day, Date, Weather Icon */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-2 gap-4">
         <div className="flex-1">
@@ -48,15 +40,14 @@ export default function WeatherCard({ weather, loading, error }) {
           <div className="text-text-secondary text-xs lg:text-sm mb-2 lg:mb-4">{location?.localtime ? new Date(location.localtime).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}</div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 lg:gap-4">
             <span className="text-4xl lg:text-6xl font-bold">
-              {isCelsius ? `${current.temp_c}°C` : `${current.temp_f}°F`}
+              {unit === 'celsius' ? `${current.temp_c}°C` : `${current.temp_f}°F`}
             </span>
             <div className="flex flex-col text-xs text-text-secondary">
-              <span>Feels Like: {isCelsius ? `${current.feelslike_c}°C` : `${current.feelslike_f}°F`}</span>
+              <span>Feels Like: {unit === 'celsius' ? `${current.feelslike_c}°C` : `${current.feelslike_f}°F`}</span>
               <span>Humidity: {current.humidity}%</span>
             </div>
           </div>
         </div>
-        
         {/* Weather Icon */}
         <div className="flex flex-col items-center">
           <img src={current.condition.icon} alt={current.condition.text} className="w-16 h-16 lg:w-20 lg:h-20" />

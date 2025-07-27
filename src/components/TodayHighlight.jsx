@@ -1,7 +1,7 @@
 import React from 'react';
 import { Droplet, Sun, Wind, Cloud } from 'lucide-react';
 
-export default function TodayHighlight({ weather, loading, error, className = '' }) {
+export default function TodayHighlight({ weather, loading, error, unit, className = '' }) {
   if (loading) {
     return (
       <section className={`bg-card-bg rounded-3xl p-4 lg:p-8 shadow-dashboard font-dashboard text-text-primary flex flex-col w-full text-center ${className}`}>
@@ -32,7 +32,7 @@ export default function TodayHighlight({ weather, loading, error, className = ''
     },
     {
       title: 'Wind Status',
-      value: current.wind_kph ? `${current.wind_kph} km/h` : 'N/A',
+      value: current.wind_kph ? `${unit === 'celsius' ? current.wind_kph + ' km/h' : (current.wind_kph / 1.609).toFixed(1) + ' mph'}` : 'N/A',
       icon: <Wind size={20} className="text-cyan-400 lg:w-6 lg:h-6" />,
     },
     {

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Forecast({ forecast, loading, error }) {
+export default function Forecast({ forecast, loading, error, unit }) {
   if (loading) {
     return (
       <section className="bg-card-bg rounded-3xl p-4 lg:p-8 shadow-dashboard font-dashboard text-text-primary w-full text-center min-h-[300px] lg:min-h-[340px]">
@@ -48,7 +48,9 @@ export default function Forecast({ forecast, loading, error }) {
               <div key={idx} className="flex flex-col items-center bg-card-bg rounded-xl px-3 lg:px-4 py-2 shadow-dashboard min-w-[60px] lg:min-w-[70px]">
                 <span className="text-xs text-text-secondary mb-1">{new Date(h.time).getHours()} {new Date(h.time).getHours() < 12 ? 'AM' : 'PM'}</span>
                 <img src={h.condition.icon} alt={h.condition.text} className="w-6 h-6 lg:w-8 lg:h-8" />
-                <span className="text-sm lg:text-base text-text-primary mt-1 font-semibold">{Math.round(h.temp_c)}°</span>
+                <span className="text-sm lg:text-base text-text-primary mt-1 font-semibold">
+                  {unit === 'celsius' ? Math.round(h.temp_c) + '°' : Math.round(h.temp_f) + '°'}
+                </span>
               </div>
             ))}
           </div>
@@ -57,7 +59,9 @@ export default function Forecast({ forecast, loading, error }) {
             <div className="flex items-center bg-gradient-to-r from-dashboard-bg to-card-bg rounded-2xl p-3 lg:p-4 mt-2 shadow-dashboard">
               <div className="flex-1">
                 <div className="text-text-secondary text-xs">Tomorrow</div>
-                <div className="text-text-primary text-xl lg:text-2xl font-bold">{Math.round(tomorrow.day.avgtemp_c)}°</div>
+                <div className="text-text-primary text-xl lg:text-2xl font-bold">
+                  {unit === 'celsius' ? Math.round(tomorrow.day.avgtemp_c) + '°' : Math.round(tomorrow.day.avgtemp_f) + '°'}
+                </div>
                 <div className="text-text-secondary text-xs">{tomorrow.day.condition.text}</div>
               </div>
               <img src={tomorrow.day.condition.icon} alt={tomorrow.day.condition.text} className="w-10 h-10 lg:w-12 lg:h-12" />
