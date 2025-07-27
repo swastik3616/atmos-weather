@@ -55,7 +55,7 @@ export default function TopBar({ city, setCity, onMenuClick, user, onSettings, o
         />
       </div>
       
-      {/* User Profile or Login/Signup - Better mobile alignment */}
+      {/* User Profile or Login - Better mobile alignment */}
       <div className="relative flex-shrink-0" ref={dropdownRef}>
         {isLoggedIn ? (
           <>
