@@ -44,6 +44,9 @@ function DashboardLayout({ isLoggedIn }) {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [currentTime, setCurrentTime] = useState(new Date());
   
+  // Mobile-specific state
+  const [isMobile, setIsMobile] = useState(false);
+  
   // Clock states
   const [clockMode, setClockMode] = useState('local'); // 'local', 'world', 'timer', 'stopwatch'
   const [worldClocks, setWorldClocks] = useState([
@@ -97,6 +100,33 @@ function DashboardLayout({ isLoggedIn }) {
   const [notifications, setNotifications] = useState(() => getInitial('notifications', true));
   const [theme, setTheme] = useState(() => getInitial('theme', 'dark'));
   const [user, setUser] = useState(null);
+
+  // Mobile detection and optimization
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    // Prevent zoom on double tap for mobile
+    let lastTouchEnd = 0;
+    const preventZoom = (e) => {
+      const now = (new Date()).getTime();
+      if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+      }
+      lastTouchEnd = now;
+    };
+    
+    document.addEventListener('touchend', preventZoom, false);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      document.removeEventListener('touchend', preventZoom);
+    };
+  }, []);
 
   // Persist settings
   useEffect(() => { localStorage.setItem('unit', unit); }, [unit]);
@@ -936,23 +966,30 @@ function DashboardLayout({ isLoggedIn }) {
   // Apply theme classes to root div
   return (
     <div className={`flex min-h-screen mobile-safe-area transition-colors duration-300 ${theme === 'dark' ? 'bg-[#151A23]' : LIGHT_BG}`}>
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile Sidebar Overlay - Enhanced with better touch handling */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden mobile-tap-highlight"
+          className="fixed inset-0 bg-black bg-opacity-60 z-40 lg:hidden mobile-tap-highlight backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
       )}
-      {/* Sidebar */}
-      <div className={`fixed lg:relative z-50 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} transition-transform duration-300 ease-in-out`}>
+      {/* Sidebar - Enhanced mobile positioning and animation */}
+      <div className={`fixed lg:relative z-50 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} transition-transform duration-300 ease-in-out lg:transition-none`}>
         <Sidebar 
           onClose={() => setSidebarOpen(false)} 
           currentPage={currentPage}
-          onNavigation={page => setCurrentPage(page)}
+          onNavigation={page => {
+            setCurrentPage(page);
+            // Auto-close sidebar on mobile after navigation
+            if (window.innerWidth < 1024) {
+              setSidebarOpen(false);
+            }
+          }}
           isLoggedIn={isLoggedIn}
         />
       </div>
-      <main className="flex-1 p-4 lg:p-8 w-full overflow-x-hidden">
+      {/* Main Content - Enhanced mobile padding and layout */}
+      <main className="flex-1 p-3 sm:p-4 lg:p-8 w-full overflow-x-hidden min-h-screen">
         <TopBar 
           city={city} 
           setCity={setCity} 
@@ -962,7 +999,9 @@ function DashboardLayout({ isLoggedIn }) {
           onLogout={handleLogout}
           isLoggedIn={isLoggedIn}
         />
-        {renderPageContent()}
+        <div className="pb-4 lg:pb-0">
+          {renderPageContent()}
+        </div>
       </main>
     </div>
   );
