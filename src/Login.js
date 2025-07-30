@@ -2,22 +2,28 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { app } from "./firebaseconfig";
+import { useNotifications } from "./context/NotificationContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { showSuccess, showError } = useNotifications();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     const auth = getAuth(app);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      showSuccess(`Welcome back, ${user.displayName || user.email}!`);
       navigate("/");
     } catch (err) {
-      setError("Email or password is incorrect");
+      const errorMessage = "Email or password is incorrect";
+      setError(errorMessage);
+      showError(errorMessage);
     }
   };
 
@@ -25,10 +31,13 @@ export default function Login() {
     const provider = new GoogleAuthProvider();
     const auth = getAuth(app);
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      showSuccess(`Welcome back, ${user.displayName || user.email}!`);
       navigate("/");
     } catch (err) {
       setError(err.message);
+      showError(err.message);
     }
   };
 

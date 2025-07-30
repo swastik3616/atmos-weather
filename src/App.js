@@ -13,6 +13,8 @@ import './App.css';
 import { getCurrentWeather, getForecast } from './api/weatherApi';
 import Forecast from './components/Forecast';
 import OtherCities from './components/OtherCities';
+import WelcomePopup from './components/WelcomePopup';
+import { NotificationProvider, useNotifications } from './context/NotificationContext';
 import { Menu, X, Plus, Play, Pause, RotateCcw, Globe, Timer, Clock, Calendar, Moon, Sun, Cloud, CloudRain, Search, LogOut } from 'lucide-react';
 
 // Light mode palette
@@ -22,6 +24,8 @@ const LIGHT_TEXT = 'text-[#232A3A]';
 const LIGHT_DASHBOARD = 'bg-[#f0f1f3]';
 
 function DashboardLayout({ isLoggedIn }) {
+  const { showSuccess, showError, showWarning, showInfo } = useNotifications();
+  
   // Restore persisted settings
   const getInitial = (key, fallback) => {
     try {
@@ -100,6 +104,8 @@ function DashboardLayout({ isLoggedIn }) {
   const [notifications, setNotifications] = useState(() => getInitial('notifications', true));
   const [theme, setTheme] = useState(() => getInitial('theme', 'dark'));
   const [user, setUser] = useState(null);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+  const [welcomeUsername, setWelcomeUsername] = useState('');
 
   // Mobile detection and optimization
   useEffect(() => {
@@ -213,12 +219,35 @@ function DashboardLayout({ isLoggedIn }) {
         setWeather(weatherData);
         setForecast(forecastData);
         setLoading(false);
+        
+        // Show weather alerts based on conditions
+        if (weatherData) {
+          const temp = weatherData.current.temp_c;
+          const condition = weatherData.current.condition.text.toLowerCase();
+          
+          // Temperature alerts
+          if (temp > 35) {
+            showWarning(`High temperature alert: ${temp}°C in ${city}. Stay hydrated!`);
+          } else if (temp < 0) {
+            showWarning(`Low temperature alert: ${temp}°C in ${city}. Bundle up!`);
+          }
+          
+          // Weather condition alerts
+          if (condition.includes('storm') || condition.includes('thunder')) {
+            showError(`Severe weather alert: ${condition} in ${city}. Take precautions!`);
+          } else if (condition.includes('rain') || condition.includes('drizzle')) {
+            showInfo(`Rain expected in ${city}. Don't forget your umbrella!`);
+          } else if (condition.includes('sunny') || condition.includes('clear')) {
+            showSuccess(`Beautiful weather in ${city}! Perfect for outdoor activities.`);
+          }
+        }
       })
       .catch(err => {
         setError('Failed to fetch weather data');
         setLoading(false);
+        showError('Failed to fetch weather data. Please try again.');
       });
-  }, [city]);
+  }, [city, showSuccess, showError, showWarning, showInfo]);
 
   // Real-time clock update
   useEffect(() => {
@@ -245,9 +274,20 @@ function DashboardLayout({ isLoggedIn }) {
     const auth = getAuth(app);
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      
+      // Show welcome popup when user logs in
+      if (user && !localStorage.getItem('welcomeShown')) {
+        const username = user.displayName || user.email?.split('@')[0] || 'User';
+        setWelcomeUsername(username);
+        setShowWelcomePopup(true);
+        localStorage.setItem('welcomeShown', 'true');
+        
+        // Show success notification
+        showSuccess(`Welcome to Atmos Weather, ${username}!`);
+      }
     });
     return () => unsubscribe();
-  }, []);
+  }, [showSuccess]);
 
   // Theme effect
   useEffect(() => {
@@ -261,6 +301,11 @@ function DashboardLayout({ isLoggedIn }) {
   const handleNavigation = (page) => {
     setCurrentPage(page);
     setSidebarOpen(false);
+  };
+  
+  const handleCityChange = (newCity) => {
+    setCity(newCity);
+    showInfo(`Weather updated for ${newCity}`);
   };
 
   // Clock functions
@@ -398,12 +443,47 @@ function DashboardLayout({ isLoggedIn }) {
   };
 
   // Settings handlers
-  const handleUnitToggle = () => setUnit(unit === 'celsius' ? 'fahrenheit' : 'celsius');
-  const handleNotificationsToggle = () => setNotifications((n) => !n);
-  const handleThemeToggle = () => setTheme(theme === 'dark' ? 'light' : 'dark');
+  const handleUnitToggle = () => {
+    const newUnit = unit === 'celsius' ? 'fahrenheit' : 'celsius';
+    setUnit(newUnit);
+    showSuccess(`Temperature unit changed to ${newUnit === 'celsius' ? 'Celsius' : 'Fahrenheit'}`);
+  };
+  
+  const handleNotificationsToggle = () => {
+    const newNotificationState = !notifications;
+    setNotifications(newNotificationState);
+    showInfo(`Notifications ${newNotificationState ? 'enabled' : 'disabled'}`);
+  };
+  
+  const handleThemeToggle = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    showSuccess(`Theme changed to ${newTheme}`);
+  };
   const handleLogout = () => {
     const auth = getAuth(app);
     signOut(auth);
+    showInfo('You have been logged out successfully.');
+  };
+  
+  // Notification test functions
+  const testNotification = (type) => {
+    switch (type) {
+      case 'success':
+        showSuccess('This is a success notification!');
+        break;
+      case 'error':
+        showError('This is an error notification!');
+        break;
+      case 'warning':
+        showWarning('This is a warning notification!');
+        break;
+      case 'info':
+        showInfo('This is an info notification!');
+        break;
+      default:
+        break;
+    }
   };
 
   // TopBar handlers
@@ -923,6 +1003,37 @@ function DashboardLayout({ isLoggedIn }) {
                   />
                 </button>
               </div>
+              
+              {/* Notification Testing */}
+              <div className={`${theme === 'dark' ? 'bg-dashboard-bg dark:bg-[#232A3A]' : LIGHT_DASHBOARD} rounded-2xl p-4`}>
+                <span className={`font-medium ${theme === 'dark' ? 'text-white' : LIGHT_TEXT} block mb-3`}>Test Notifications</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => testNotification('success')}
+                    className="px-3 py-2 rounded-lg bg-green-600 text-white text-sm hover:bg-green-700 transition-colors"
+                  >
+                    Success
+                  </button>
+                  <button
+                    onClick={() => testNotification('error')}
+                    className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm hover:bg-red-700 transition-colors"
+                  >
+                    Error
+                  </button>
+                  <button
+                    onClick={() => testNotification('warning')}
+                    className="px-3 py-2 rounded-lg bg-yellow-600 text-white text-sm hover:bg-yellow-700 transition-colors"
+                  >
+                    Warning
+                  </button>
+                  <button
+                    onClick={() => testNotification('info')}
+                    className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors"
+                  >
+                    Info
+                  </button>
+                </div>
+              </div>
               {/* Theme Toggle */}
               <div className={`${theme === 'dark' ? 'bg-dashboard-bg dark:bg-[#232A3A]' : LIGHT_DASHBOARD} flex items-center justify-between rounded-2xl p-4`}>
                 <span className={`font-medium ${theme === 'dark' ? 'text-white' : LIGHT_TEXT}`}>Theme</span>
@@ -966,6 +1077,13 @@ function DashboardLayout({ isLoggedIn }) {
   // Apply theme classes to root div
   return (
     <div className={`flex min-h-screen mobile-safe-area transition-colors duration-300 ${theme === 'dark' ? 'bg-[#151A23]' : LIGHT_BG}`}>
+      {/* Welcome Popup */}
+      <WelcomePopup
+        username={welcomeUsername}
+        isVisible={showWelcomePopup}
+        onClose={() => setShowWelcomePopup(false)}
+      />
+      
       {/* Mobile Sidebar Overlay - Enhanced with better touch handling */}
       {sidebarOpen && (
         <div 
@@ -992,7 +1110,7 @@ function DashboardLayout({ isLoggedIn }) {
       <main className="flex-1 p-3 sm:p-4 lg:p-8 w-full overflow-x-hidden min-h-screen">
         <TopBar 
           city={city} 
-          setCity={setCity} 
+          setCity={handleCityChange} 
           onMenuClick={() => setSidebarOpen(true)}
           user={user}
           onSettings={handleSettings}
@@ -1031,9 +1149,11 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <AppRoutes isLoggedIn={isLoggedIn} />
-    </Router>
+    <NotificationProvider>
+      <Router>
+        <AppRoutes isLoggedIn={isLoggedIn} />
+      </Router>
+    </NotificationProvider>
   );
 }
 
