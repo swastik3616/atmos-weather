@@ -1,33 +1,94 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, ChevronDown, Menu, LogOut, Settings as SettingsIcon } from 'lucide-react';
+import { Search, ChevronDown, Menu, LogOut, Settings as SettingsIcon, MapPin, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { searchLocations } from '../api/weatherApi';
 
 export default function TopBar({ city, setCity, onMenuClick, user, onSettings, onLogout, isLoggedIn }) {
   const [input, setInput] = useState(city);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   const dropdownRef = useRef(null);
+  const searchRef = useRef(null);
   const navigate = useNavigate();
+
+  // Debounced search function
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (input.trim().length > 2) {
+        performSearch(input.trim());
+      } else {
+        setSearchSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [input]);
+
+  const performSearch = async (query) => {
+    if (query.length < 3) return;
+    
+    setSearchLoading(true);
+    try {
+      const results = await searchLocations(query);
+      setSearchSuggestions(results || []);
+      setShowSuggestions(true);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchSuggestions([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && input.trim()) {
       setCity(input.trim());
+      setShowSuggestions(false);
     }
   };
 
-  // Close dropdown on outside click
+  const handleSuggestionClick = (suggestion) => {
+    const locationName = suggestion.name;
+    if (suggestion.region && suggestion.region !== suggestion.name) {
+      setCity(`${locationName}, ${suggestion.region}`);
+    } else {
+      setCity(locationName);
+    }
+    setInput(locationName);
+    setShowSuggestions(false);
+  };
+
+  const getLocationTypeIcon = (suggestion) => {
+    if (suggestion.country && suggestion.region) {
+      return <Globe className="w-4 h-4 text-blue-400" />;
+    }
+    return <MapPin className="w-4 h-4 text-green-400" />;
+  };
+
+  const getLocationTypeText = (suggestion) => {
+    if (suggestion.country && suggestion.region) {
+      return 'District/Village';
+    }
+    return 'City';
+  };
+
+  // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
     }
-    if (dropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside);
-    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [dropdownOpen]);
+  }, []);
 
   const username = user?.email ? user.email.split('@')[0] : 'User';
 
@@ -42,17 +103,60 @@ export default function TopBar({ city, setCity, onMenuClick, user, onSettings, o
         <Menu size={22} />
       </button>
       
-      {/* Search Bar - Reduced mobile size and better responsiveness */}
-      <div className="flex items-center bg-[#232A3A] rounded-xl px-3 py-2.5 w-full max-w-[200px] sm:max-w-xs lg:max-w-md shadow-lg">
-        <Search className="text-gray-400 mr-2 flex-shrink-0" size={18} />
-        <input
-          type="text"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Search City..."
-          className="bg-transparent outline-none text-white placeholder-gray-400 flex-1 text-sm lg:text-base mobile-tap-highlight min-h-[20px]"
-        />
+      {/* Enhanced Search Bar with Autocomplete */}
+      <div className="relative flex-1 max-w-[200px] sm:max-w-xs lg:max-w-md" ref={searchRef}>
+        <div className="flex items-center bg-[#232A3A] rounded-xl px-3 py-2.5 w-full shadow-lg">
+          <Search className="text-gray-400 mr-2 flex-shrink-0" size={18} />
+          <input
+            type="text"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={() => input.trim().length > 2 && setShowSuggestions(true)}
+            placeholder="Search City, District, Village..."
+            className="bg-transparent outline-none text-white placeholder-gray-400 flex-1 text-sm lg:text-base mobile-tap-highlight min-h-[20px]"
+          />
+          {searchLoading && (
+            <div className="ml-2 w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+          )}
+        </div>
+        
+        {/* Search Suggestions Dropdown */}
+        {showSuggestions && searchSuggestions.length > 0 && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-[#232A3A] rounded-xl shadow-2xl border border-[#2d3340] z-50 max-h-60 overflow-y-auto">
+            {searchSuggestions.map((suggestion, index) => (
+              <button
+                key={index}
+                onClick={() => handleSuggestionClick(suggestion)}
+                className="w-full px-4 py-3 text-left hover:bg-[#2d3340] transition-colors border-b border-[#2d3340] last:border-b-0"
+              >
+                <div className="flex items-center gap-3">
+                  {getLocationTypeIcon(suggestion)}
+                  <div className="flex-1">
+                    <div className="text-white font-medium text-sm">
+                      {suggestion.name}
+                    </div>
+                    <div className="text-gray-400 text-xs flex items-center gap-2">
+                      <span>{getLocationTypeText(suggestion)}</span>
+                      {suggestion.region && suggestion.region !== suggestion.name && (
+                        <>
+                          <span>•</span>
+                          <span>{suggestion.region}</span>
+                        </>
+                      )}
+                      {suggestion.country && (
+                        <>
+                          <span>•</span>
+                          <span>{suggestion.country}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       
       {/* User Profile or Login - Better mobile alignment */}
